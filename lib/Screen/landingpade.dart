@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:myshop/Constants/constants.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,7 +15,6 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   Future<List<Map<String,dynamic>>> _getProduct() async {
     final url = Uri.https(kBaseUrl, kProductUrl);
-
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as List;
@@ -47,7 +47,7 @@ class _LandingPageState extends State<LandingPage> {
             return Center(child: Text('No products found.'));
           } else{
             final products = snapshot.data!;
-            return  GridView.builder(gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,mainAxisExtent: 325),
+            return  GridView.builder(gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1,mainAxisExtent: 325),
               itemCount : products.length,
                 itemBuilder : (context,index){
                   final product = products[index];
@@ -68,14 +68,23 @@ class _LandingPageState extends State<LandingPage> {
                             SizedBox(
                               height: 15,
                             ),
-                            Text(product['title'],style: TextStyle(fontWeight: FontWeight.bold),),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(product['title'],style: TextStyle(fontWeight: FontWeight.bold),),
+                            ),
                             Text('₹${product['price']}',
                               style: TextStyle(color: Colors.grey[700]),),
                             SizedBox(
                               height: 5,
                             ),
-                            ElevatedButton(onPressed: (){}, child:
-                            Text('Add To Cart'))
+                            TextButton(onPressed:()=> _addToCart(product), child:  Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Add To Cart'),
+                                SizedBox(width: 5,),
+                                Icon(Icons.shopping_cart)
+                              ],
+                            ))
 
                           ],
                         ),
@@ -91,5 +100,9 @@ class _LandingPageState extends State<LandingPage> {
 
       ),);
         
+  }
+  final _myBox = Hive.box('mybox');
+  _addToCart(Map<String, dynamic> product) {
+  _myBox.add(product);
   }
 }
